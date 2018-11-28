@@ -1,0 +1,59 @@
+1.安装准备
+CentOS7镜像  linux系统 https://www.centos.org/download/
+DVD ISO：普通光盘完整安装版镜像，可离线安装到计算机硬盘上，包含大量的常用软件，一般选择这种镜像类型即可。
+Everything ISO：包含了完整安装版的内容，并对其进行补充，集成了所 有软件。
+Minimal ISO：这个版本为精简版的镜像，可以安装一个基本的CentOS系 统，包含了可启动系统基本所需的最小安装包
+
+VMwareworkstation_v12.5.2  windows运行linux系统的软件 需要自己去破解
+2.安装
+    2.1先安装VMwareworkstation
+    2.2安装CentOS7 点击创建新虚拟机，然后漫长的安装，可以选择有界面的，也可以安装无界面的
+    2.3进行桥接 可以通过局域网进行访问
+        在VM界面点击编辑，选择虚拟网络编辑器，现在桥接模式
+3.连接
+    下载Xftp和linux交互文件软件
+    现在Xshell和linux进行命令执行软件
+    https://xshell.en.softonic.com/
+    需要邮箱进行获取
+一切准备就绪发现CentOS7无法获取ip
+CentOS7系统安装完毕之后，输入ifconfig命令发现没有eth0,不符合我们的习惯。而且也无法远程ssh连接，
+linux获取ip ifconf
+原因CentOS7生成的eth33
+一，永久搞定 https://www.cnblogs.com/feixiangtk/p/6819118.html
+　　　　1.进入目录/etc/sysconfig/network-scripts/
+　　　　2.将文件ifcfg-ens33重命名为ifcfg-eth0;
+       (注意：修改需要切换至root用户)
+　　　　3.编辑ifcfg-eth0
+　　　　使用命令：vi ifcfg-eth0
+　　　　只需要修改一个参数即可，
+　　　　将NAME=ens33改为NAME=eth0
+      （这样IP是动态的，一旦重启IP可能会变，我这其他人的电脑IP都是动态的，如果我固定死了，可能会出现IP冲突）
+　　　  保存退出
+　　　　　　如果要求静态IP
+　　　　　　#修改
+　　　　　　BOOTPROTO=static #这里讲dhcp换成ststic
+　　　　　　ONBOOT=yes #将no换成yes
+　　　　　　#新增
+　　　　　　IPADDR=192.168.85.100 #静态IP
+　　　　　　GATEWAY=192.168.85.2 #默认网关
+　　　　　　NETMASK=255.255.255.0 #子网掩码
+　　　　　　就把上面这写参数对应改一下和加上去，根据自己的网段改。
+　　　　   重启重启网络
+　　　　　　输入命令 service network restart ，重启网络。
+　　　　   再次输入 ifconfig 查看网卡，应该可以看到 以太网的配置里面有 inet 信息，此时可以上网了。
+　　      如果还不可以就继续
+　　　　4.修改grub文件
+　　　　　　目录：/etc/default
+　　　　　　编辑grub文件
+　　　　　　　　使用命令：vi grub
+　　　　　　　　在GRUB_CMDLINE_LINUX原有的参数后面加上"net.ifnames=0 biosdevname=0"
+　       保存退出
+　　　　5.命令行运行命令
+　　　　　　grub2-mkconfig -o /boot/grub2/grub.cfg
+　     6.完成了，重启一下就ok了，不过重启之前可以顺带修改一个计算机名
+　　　　　　编辑文件： vi /etc/hostname
+　        就一行内容，就是计算机名，怎么写都行（英文的），保存退出
+　　　　7.重启计算机
+　　　　　　reboot
+　　　　8.完成
+这样就可以快乐的连接我们的linux了

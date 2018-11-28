@@ -1,0 +1,71 @@
+1.前期准备
+yum安装
+    1．卸载YUM
+    rpm-qa | grep yum | xargs rpm -e--nodeps
+    2．安装YUM
+    下载安装包(注意cenos版本)
+    下载源：http://mirrors.163.com/centos/6/os/i386/Packages/
+    wget */python-iniparse-0.3.1-2.1.el6.noarch.rpm
+    wget */python-urlgrabber-3.9.1-11.el6.noarch.rpm
+    wget */yum-3.2.29-73.el6.centos.noarch.rpm
+    wget */yum-metadata-parser-1.1.2-16.el6.i686.rpm
+    wget */yum-plugin-fastestmirror-1.1.30-37.el6.noarch.rpm
+    安装
+    rpm -ivh python-iniparse-0.4-9.el7.noarch.rpm
+    rpm -ivh yum-metadata-parser-1.1.4-10.el7.x86_64.rpm
+    rpm -ivh yum-3.4.3-118.el7.centos.noarch.rpm yum-plugin-fastestmirror-1.1.31-24.el7.noarch.rpm
+    问题1
+    最后两个包一起装，不然会报错，他们之间存在依赖关系.
+    安装过程中出现依赖特定版本的python-urlgrabber
+    rpm命令也有升级功能
+    rpm -Uvh python-urlgrabber-3.9.1-11.el6.noarch.rpm
+    问题2
+    若报错，修改python路径
+    Vim /usr/bin/yum
+    修改python目录： /usr/local/bin/python
+    3.配置源
+    源文件目录/etc/yum.repos.d
+    cd /etc/yum.repos.d/
+    wget http://mirrors.163.com/.help/CentOS6-Base-163.repo
+    wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-6.repo //aliyun
+    vi CentOS6-Base-163.repo
+    把文件里面的$releasever全部替换为版本号，即6 最后保存
+    把文件里面的$basearch全部替换为x86_64 最后保存。
+    4、清理yum缓存
+    yum clean all #
+    yum makecache #将服务器上的软件包信息缓存到本地,以提高搜索安装软件的速度 #
+    现在 : Redhat6可以使用CentOS的yum源在线安装软件了！
+    注意：
+    注意源网址是否存在。
+    源文件目录下没用的.repo文件都清理掉，否则会有错误的源。
+    版本号，和arch一定要替换掉，6 x86_64
+    Yum的源有很多，sohu，中科大，163，清华等等，可自行在网上搜索
+    5、yum更新
+    yum –y update
+    yum update –skip-broken
+    Packages skipped because of dependency problems:
+    qpid-cpp-client-0.14-22.el6_3.x86_64 from base
+    qpid-cpp-client-ssl-0.14-22.el6_3.x86_64 from base
+    qpid-cpp-server-0.14-22.el6_3.x86_64 from base
+    qpid-cpp-server-ssl-0.14-22.el6_3.x86_64 from base
+    qpid-qmf-0.14-14.el6_3.x86_64 from base
+    yum erase qpid-cpp-server
+    yum erase qpid-cpp-client
+    yum install qpid-cpp-server qpid-cpp-client
+    yum –y update --setopt=protected_multilib=false 关闭多库版本检测
+JDK安装
+    　　tar.gz为解压后就可以使用的版本，这里我将使用jdk-8u65-linux-x64.tar.gz版，安装到/usr/java/下
+    步骤一
+    　　将文件jdk-8u65-linux-x64.gz移动到/usr/java/下，并解压：
+    　　tar -xzvf  jdk-8u65-linux-x64.gz
+    步骤二
+    　　在/etc/profile文件中，配置环境变量，是JDK在所有用户中生效：
+    　　打开/etc/profile文件　　vi /etc/profile
+    　　编辑文件，在最后添加：
+    　　export JAVA_HOME=/usr/java/jdk1.8.0_65
+    　　export JRE_HOME=$JAVA_HOME/jre
+    　　export CLASSPATH=.:$JAVA_HOME/lib:$JRE_HOME/lib
+    　　export PATH=$JAVA_HOME/bin:$PATH
+    　　保存退出后，执行source /etc/profile是修改的环境变量生效
+    步骤三
+    　　使用java -version命令测试是否成功
