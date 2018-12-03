@@ -1,0 +1,13 @@
+1.拉取tomcat(这里拉取tomcat镜像, 镜像里面是包括jdk的)
+docker pull tomcat
+2.启动 tomcat 服务器 (相当于创建镜像)
+docker run -d --name my-tomcat -p 8888(宿主机器端口):8080(docker tomcat 容器端口) tomcat
+3.进入容器
+ 以交互的形式启动,进入tomcat容器 看一下文件目录 --- 找到 webapps 目录
+ docker exec -it my-tomcat /bin/bash
+4.退出启动
+docker start ID
+5、访问tomcat
+http://192.168.17.130:8888/
+6. 将准备好的 web 应用拷贝到 docker my-tomcat 容器, 这里拷贝进去之后会自动部署, 直接就可以访问
+docker cp docker.war my-tomcat:/usr/local/tomcat/webapps

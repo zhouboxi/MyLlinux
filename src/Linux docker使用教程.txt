@@ -1,0 +1,165 @@
+Docker是一个开源的引擎，可以轻松的为任何应用创建一个轻量级的、可移植的、自给自足的容器。开发者在笔记本上编译测试通过的容器可以批量地在生产环境中部署，包括VMs（虚拟机）、 bare metal、OpenStack 集群和其他的基础应用平台。
+Docker通常用于如下场景：
+web应用的自动化打包和发布；
+自动化测试和持续集成、发布；
+在服务型环境中部署和调整数据库或其他的后台应用；
+从头编译或者扩展现有的OpenShift或Cloud Foundry平台来搭建自己的PaaS环境。
+
+1.查看docker版本
+docker version
+2.查看可以使用的容器
+docker search tutorial  search后面是关键字
+3.下载容器
+docker pull learn/tutorial  pull后面是全名
+
+在docker容器中运行hello world!
+    docker容器可以理解为在沙盒中运行的进程。这个沙盒包含了该进程运行所必须的资源，
+    包括文件系统、系统类库、shell 环境等等。但这个沙盒默认是不会运行任何程序的。
+    你需要在沙盒中运行一个进程来启动某一个容器。这个进程是该容器的唯一进程，
+    所以当该进程结束的时候，容器也会完全的停止。
+    目标：
+    在我们刚刚下载的镜像中输出"hello word"。为了达到这个目的，我们需要在这个容器中运行"echo"命令，输出"hello word"。
+    提示：
+    docker run命令有两个参数，一个是镜像名，一个是要在镜像中运行的命令。
+    正确的命令：
+    $ docker run learn/tutorial echo "hello word"
+
+在容器中安装新的程序
+    下一步我们要做的事情是在容器里面安装一个简单的程序(ping)。我们之前下载的tutorial镜像是基于ubuntu的，所以你可以使用ubuntu的apt-get命令来安装ping程序：apt-get install -y ping。
+    备注：apt-get 命令执行完毕之后，容器就会停止，但对容器的改动不会丢失。
+    目标：
+    在learn/tutorial镜像里面安装ping程序。
+    提示：
+    在执行apt-get 命令的时候，要带上-y参数。如果不指定-y参数的话，apt-get命令会进入交互模式，需要用户输入命令来进行确认，但在docker环境中是无法响应这种交互的。
+    正确的命令：
+    $docker run learn/tutorial apt-get install -y ping
+保存对容器的修改
+    当你对某一个容器做了修改之后（通过在容器中运行某一个命令），可以把对容器的修改保存下来，这样下次可以从保存后的最新状态运行该容器。docker中保存状态的过程称之为committing，它保存的新旧状态之间的区别，从而产生一个新的版本。
+    目标：
+    首先使用docker ps -l命令获得安装完ping命令之后容器的id。然后把这个镜像保存为learn/ping。
+    提示：
+    1. 运行docker commit，可以查看该命令的参数列表。
+    2. 你需要指定要提交保存容器的ID。(译者按：通过docker ps -l 命令获得)
+    3. 无需拷贝完整的id，通常来讲最开始的三至四个字母即可区分。（译者按：非常类似git里面的版本号)
+    正确的命令：
+    $docker commit 698 learn/ping
+
+运行新的镜像
+    ok，到现在为止，你已经建立了一个完整的、自成体系的docker环境，并且安装了ping命令在里面。它可以在任何支持docker环境的系统中运行啦！(译者按：是不是很神奇呢？)让我们来体验一下吧！
+    目标：
+    在新的镜像中运行ping www.google.com命令。
+    提示：
+    一定要使用新的镜像名 learn/ping来运行ping命令。(译者按：最开始下载的learn/tutorial镜像中是没有ping命令的)
+    正确的命令：
+    $ docker run lean/ping ping www.google.com
+
+检查运行中的镜像
+    现在你已经运行了一个docker容器，让我们来看下正在运行的容器。
+    使用docker ps命令可以查看所有正在运行中的容器列表，使用docker inspect命令我们可以查看更详细的关于某一个容器的信息。
+    目标：
+    查找某一个运行中容器的id，然后使用docker inspect命令查看容器的信息。
+    提示：
+    可以使用镜像id的前面部分，不需要完整的id。
+    正确的命令：
+    $ docker inspect efe
+
+发布docker镜像
+    现在我们已经验证了新镜像可以正常工作，下一步我们可以将其发布到官方的索引网站。还记得我们最开始下载的learn/tutorial镜像吧，我们也可以把我们自己编译的镜像发布到索引页面，一方面可以自己重用，另一方面也可以分享给其他人使用。
+    目标：
+    把learn/ping镜像发布到docker的index网站。
+    提示：
+    1. docker images命令可以列出所有安装过的镜像。
+    2. docker push命令可以将某一个镜像发布到官方网站。
+    3. 你只能将镜像发布到自己的空间下面。这个模拟器登录的是learn帐号。
+    预期的命令：
+    $ docker push learn/ping
+
+
+    新建并启动容器
+    根据一个镜像可以启动多个容器，启动容器的命令是docker run
+    sudo docker run -t -i ubuntu:12.04  /bin/bash
+    或者
+    sudo docker run -t -i  镜像id
+    常用参数解释：
+    -t 表示让Docker分配一个伪终端并绑定到容器的标准输入上
+    -i 表示让容器的标准输入保持打开
+    -d 表示以守护方式打开（即非交互模式，后台运行）
+    还有一个比较常用的，做网络配置时端口映射的参数-p，例如下面的命令将宿主机的3222端口映射到容器的22端口、将宿主机的3280端口映射到容器的22端口，用法如下：
+    #-p 设置端口映射 -p 宿主机端口:容器端口  <br>sudo docker run -t -i -p 3222:22 -p 3280:80 87e5b6b3ccc1 /bin/bash
+    查看容器列表
+    #查看已启动的容器
+    sudo docker ps
+    #查看所有容器
+    sudo docker ps -a　　
+    启动一个已存在的容器　　
+    #后面的id为容器ID<br>sudo docker start 8d98fd43acd4
+    进入容器　　
+    sudo docker attach 8d98fd43acd4
+    停止容器
+    sudo docker stop 8d98fd43acd4
+    删除容器
+    容器必须是停止状态的才可以删除
+    sudo docker rm 8d98fd43acd4
+    导出容器
+    #将容器id为7691a814370e 的导出到当前目录下 名称为ubuntu.tar
+    sudo docker export 7691a814370e > ubuntu.tar
+
+2.3 docker镜像管理
+    2.3.1 search镜像
+       [root@docker ~]# docker search centos:6
+    2.3.2 push镜像
+       [root@docker ~]# docker pull centos:6
+    2.3.3 查看镜像
+       [root@docker ~]# docker images
+    2.3.4 导入/导出镜像
+       [root@docker ~]# docker save centos:6 >/opt/centos.tar.gz  ==》导出镜像
+       [root@docker ~]# docker load  </opt/centos.tar.gz  ==》导入镜像
+    2.3.5 删除镜像
+       [root@docker ~]# docker rmi $ IMAGE ID/$TAG
+    2.3.6 利用镜像创建容器
+       [root@docker ~]# docker run -it centos:6 /bin/bash
+2.4 容器管理
+    2.4.1 新建容器
+       [root@docker ~]# docker run centos:6 /bin/echo "hehe" =》与在本地执行/bin/echo "hehe"一样
+       [root@docker ~]# docker run --name mydocker -it centos:6 /bin/bash =》启动一个bash终端，允许用户进行交互
+       --name：给容器定义名称
+       -i：让容器的标准输入保持打开
+       -t：Docker分配一个伪终端并绑定到容器的标准输入上
+    2.4.2 启动/停止容器
+       [root@docker ~]# docker start $NAMES/$CONTAINER ID
+       [root@docker ~]# docker stop $NAMES/$CONTAINER ID
+       [root@docker ~]# docker ps  ==》列出已经启动的容器
+       [root@docker ~]# docker ps –a  ==》列出所有容器，包括未启动的
+    2.4.3 删除容器
+       [root@docker ~]# docker rm $CONTAINER ID  ==》删除已经停止的容器
+       [root@docker ~]# docker rm -f  $CONTAINER ID  ==》删除正在运行的容器
+    2.4.4 进入容器
+        2.4.4.1 attach命令进入
+           [root@docker ~]# docker attach $CONTAINER ID
+           注意：该命令是系统自带的，并且启用attach命令有时候并不是特别的方便，当多个窗口同时attach到一个容器的时候，多有的窗口都会同步显示，当某个窗口因某个命令堵塞时，其他窗口也就无法再执行命令了，在退出容器时，该容器会自动停止
+        2.4.4.2 nsenter命令进入
+           [root@docker ~]# yum install -y util-linux  ==》安装nsenter
+           [root@docker ~]# docker inspect --format "{{.State.Pid}}" test ==》找到容器进程ID
+           [root@docker ~]# nsenter -t 19245 -u -i -m –p   ==》进入容器
+           -t, --target <pid>     target process to get namespaces from
+           指定容器的进程ID
+           -m, --mount[=<file>]   enter mount namespace
+           进入到mount namespace空间中
+           -u, --uts[=<file>]     enter UTS namespace (hostname etc)
+           进入到UTS namespace空间中
+           -i, --ipc[=<file>]     enter System V IPC namespace
+           进入到System V IPC namespace空间中
+           -n, --net[=<file>]     enter network namespace
+           进入到network namespace空间中
+           -p, --pid[=<file>]     enter pid namespace
+           进入到pid namespace空间
+        2.4.4.3 编写脚本快速进入容器
+           [root@docker scripts]# vim docker_in.sh
+           #/bin/bash
+           PID=$(docker inspect -f "{{.State.Pid}}" $1)
+           nsenter -t $PID -m -u -i -n -p
+关闭容器
+           方法一：如果要正常退出不关闭容器，请按Ctrl+P+Q进行退出容器
+           方法二：如果使用exit退出，那么在退出之后会关闭容器，可以使用下面的流程进行恢复
+           使用docker restart命令重启容器
+           使用docker attach命令进入容器
