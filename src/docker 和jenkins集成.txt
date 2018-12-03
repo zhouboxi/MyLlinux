@@ -1,0 +1,101 @@
+https://blog.csdn.net/wangshouhan/article/details/80332951
+到此jenkins构建成功 我们可以拿到项目构建的最新jar包（/root/.jenkins/workspace/docker-test/target/docke-test.jar），接下来就要考虑怎么把jar包自动化部署到docker容器中。
+4.编写Dockerfile文件
+在项目操作的路径（/work/project）下创建Dockerfile文件
+编辑Dockerfile文件内容为
+#基于openjdk:8
+FROM openjdk:8
+# 指定当前操作目录
+WORKDIR /work/project
+#容器启动后执行的操作
+CMD java -jar docker-test.jar
+5.编写jenkins中打包成功后执行的shell脚本
+打开jenkins中的配置选择 Pre Steps  - Add post-build step - 执行shell
+脚本值设置为
+
+#操作/项目路径(Dockerfile存放的路劲)
+BASE_PATH=/work/project
+# 源jar路径
+SOURCE_PATH=/root/.jenkins/workspace
+#docker 镜像/容器名字或者jar名字 这里都命名为这个
+SERVER_NAME=docker-test
+#容器id
+CID=$(docker ps | grep "$SERVER_NAME" | awk '{print $1}')
+#镜像id
+IID=$(docker images | grep "$SERVER_NAME" | awk '{print $3}')
+
+DATE=`date +%Y%m%d%H%M`
+
+# 最新构建代码 移动到项目环境
+function transfer(){
+    echo "最新构建代码 $SOURCE_PATH/$SERVER_NAME/target/$SERVER_NAME.jar 迁移至 $BASE_PATH ...."
+        cp $SOURCE_PATH/$SERVER_NAME/target/$SERVER_NAME.jar $BASE_PATH
+    echo "迁移完成"
+}
+
+# 备份
+function backup(){
+	if [ -f "$BASE_PATH/$SERVER_NAME.jar" ]; then
+    	echo "$SERVER_NAME.jar 备份..."
+        	cp $BASE_PATH/$SERVER_NAME.jar $BASE_PATH/backup/$SERVER_NAME-$DATE.jar
+        echo "备份 $SERVER_NAME.jar 完成"
+    else
+    	echo "$BASE_PATH/$SERVER_NAME.jar不存在，跳过备份"
+    fi
+}
+
+# 构建docker镜像
+function build(){
+	if [ -n "$IID" ]; then
+		echo "存在$SERVER_NAME镜像，IID=$IID"
+	else
+		echo "不存在$SERVER_NAME镜像，开始构建镜像"
+			cd $BASE_PATH
+		docker build -t $SERVER_NAME .
+	fi
+}
+
+# 运行docker容器
+function run(){
+	backup
+	transfer
+	build
+	if [ -n "$CID" ]; then
+		echo "存在$SERVER_NAME容器，CID=$CID,重启docker容器 ..."
+			docker restart $SERVER_NAME
+		echo "$SERVER_NAME容器重启完成"
+	else
+		echo "不存在$SERVER_NAME容器，docker run创建容器..."
+			docker run --name $SERVER_NAME -v $BASE_PATH:$BASE_PATH -d -p 3636:3636 $SERVER_NAME
+		echo "$SERVER_NAME容器创建完成"
+	fi
+}
+
+#入口
+run
+
+这段shell脚本大致流程 
+
+a.备份（/work/project）下jar包
+
+cp /work/project/docker-test.jar /work/project/backup/docker-test-201805171416.jar
+b.项目构建的最新jar包（/root/.jenkins/workspace/docker-test/target/docke-test.jar）移动到项目操作的路径（/work/project）
+
+cp /root/.jenkins/workspace/docker-test/target/docker-test.jar /work/project
+c.判断docker镜像是否存在，不存在则进入Dockerfile存放的路径（/work/project）执行docker build操作构建名字为docker-test镜像
+
+cd /work/project
+docker build -t docker-test .
+d.判断docker容器是否存在，不存在则执行docker run命令创建容器，存在则docker restart重启容器
+
+docker run --name docker-test -v /work/project/:/work/project/ -d -p 3636:3636 docker-test
+docker restart docker-test
+docker run参数
+
+   --name docker-test                 容器的名字为docker-test
+   -d                                 容器后台运行
+   -p 3636:3636                       指定容器映射的端口和主机对应的端口都为3636
+   -v /work/project/:/work/project/   将主机的/work/project/目录挂载到容器的/work/project/ 目录中（不可少每次本地更新jar包重启容器即可，不用重新构建镜像）
+6.效果检测
+
+上步操作脚本写好保存后 点击立即构建查看日志如下图代表项目自动化打包构建成功
