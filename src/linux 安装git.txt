@@ -1,0 +1,14 @@
+查看最新版git：访问https://www.kernel.org/pub/software/scm/git/
+wget https://github.com/git/git/archive/v2.19.2.tar.gz
+大体的安装步骤如下：
+①、获取github最新的Git安装包下载链接，进入Linux服务器，执行下载，命令为： wget https://github.com/git/git/archive/v2.19.2.tar.gz ；
+②、压缩包解压，命令为： tar -zxvf v2.19.2.tar.gz ；
+③、安装编译源码所需依赖，命令为： yum install curl-devel expat-devel gettext-devel openssl-devel zlib-devel gcc perl-ExtUtils-MakeMaker 耐心等待安装，出现提示输入y即可；
+④、安装依赖时，yum自动安装了Git，需要卸载旧版本Git，命令为： yum remove git 出现提示输入y即可；
+⑤、进入解压后的文件夹，命令 cd git-2.19.2 ，然后执行编译，命令为 make prefix=/usr/local/git all 耐心等待编译即可；
+⑥、安装Git至/usr/local/git路径，命令为 make prefix=/usr/local/git install ；
+⑦、打开环境变量配置文件，命令 vim /etc/profile ，在底部加上Git相关配置信息：
+PATH=$PATH:/usr/local/git/bin
+export PATH
+然后保存，退出！
+⑧、输入命令 git --version ，查看安装的git版本，校验通过，安装成功。
