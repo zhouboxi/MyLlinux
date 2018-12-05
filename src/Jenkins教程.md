@@ -48,3 +48,6 @@ H/10  *  *  *  *  ## 任何时候，每隔 30 分钟就检测一次 SVN，如果
 ![enter description here](./images/2018-12-03_182935.png)
 打包失败，问题Jenkins内存溢出
 可能因为是虚拟机的限制 暂时无处理方法
+问题原因：检查全局配置的maven java配置是否正确
+![enter description here](./images/2018-12-05_095430.png)
+![enter description here](./images/2018-12-05_095341.png)
